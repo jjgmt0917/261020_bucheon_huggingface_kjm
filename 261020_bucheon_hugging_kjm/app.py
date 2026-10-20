@@ -11,7 +11,7 @@ from PIL import Image, ImageOps
 
 # 1. 환경 변수 불러오기 (.env: 이 폴더 우선, 없으면 상위 폴더들)
 BASE_DIR = Path(__file__).parent
-for folder in (BASE_DIR, BASE_DIR.parent, BASE_DIR.parent.parent):
+for folder in [BASE_DIR] + list(BASE_DIR.parents)[:4]:
     load_dotenv(folder / ".env")
 HF_TOKEN = os.getenv("HF_TOKEN")
 

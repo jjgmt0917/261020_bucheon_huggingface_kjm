@@ -9,25 +9,31 @@
 
 ## 구조
 ```
-app.py                  Streamlit 앱 (업로드 → 인식 → 수정 → 재판독/저장)
-requirements.txt        필요 라이브러리
-.env.example            환경변수 예시
-samples/test_font.png   테스트용 이미지 (폰트로 만든 글씨)
-saved/                  저장한 txt 파일 (자동 생성, git 제외)
+README.md
+.gitignore
+261020_bucheon_hugging_kjm/
+├── app.py                  Streamlit 앱 (업로드 → 인식 → 수정 → 재판독/저장)
+├── requirements.txt        필요 라이브러리
+├── .env.example            환경변수 예시
+├── .streamlit/config.toml  Streamlit 설정
+├── samples/test_font.png   테스트용 이미지 (폰트로 만든 글씨)
+└── saved/                  저장한 txt 파일 (자동 생성, git 제외)
 ```
 
 ## 사용법
-1. 가상환경 및 설치
+1. 레포를 받고 **작업 폴더로 이동**한 뒤 가상환경 및 설치
    ```bash
+   git clone https://github.com/jjgmt0917/261020_bucheon_huggingface_kjm.git
+   cd 261020_bucheon_huggingface_kjm/261020_bucheon_hugging_kjm
    python -m venv venv
-   venv\Scripts\activate          # macOS/Linux: source venv/bin/activate
+   venv\Scriptsctivate          # macOS/Linux: source venv/bin/activate
    pip install -r requirements.txt
    ```
 2. `.env.example` 을 복사해 `.env` 생성 후 토큰 입력 (**필수**)
    ```
    HF_TOKEN=...      # https://huggingface.co/settings/tokens
    ```
-   `.env` 는 이 폴더 → 상위 폴더 순서로 찾습니다.
+   `.env` 는 작업 폴더 → 상위 폴더 순서로 찾습니다.
 3. 실행
    ```bash
    streamlit run app.py
