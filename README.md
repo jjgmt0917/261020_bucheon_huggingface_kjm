@@ -7,6 +7,17 @@
 - **Python 3.8 이상**에서 동작합니다
 - 한글·영어 손글씨를 모두 읽습니다 (언어는 모델이 알아서 구분)
 
+## 기술 스택
+| 구분 | 사용 기술 |
+|---|---|
+| 언어 | Python 3.8+ |
+| 웹 UI | Streamlit |
+| AI 모델 호출 | Hugging Face `huggingface_hub` (`InferenceClient`, Inference Providers) |
+| 사용 모델 | Gemma 4 (Google), Qwen3-VL / Qwen2.5-VL (Alibaba) 비전 언어 모델 |
+| 이미지 처리 | Pillow (회전 보정, 리사이즈, JPEG 변환) |
+| 환경변수 관리 | python-dotenv (`.env`) |
+| 버전 관리 | Git / GitHub |
+
 ## 구조
 ```
 README.md
