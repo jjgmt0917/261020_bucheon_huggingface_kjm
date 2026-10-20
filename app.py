@@ -48,14 +48,18 @@ def binarize(gray):
 def ocr(reader, data, mode):
     """mode 번째 전처리를 적용해 읽고 줄 목록을 돌려준다."""
     img = ImageOps.exif_transpose(Image.open(io.BytesIO(data))).convert("L")
-    if mode == 0:
-        return reader.read_photo(to_png(img))
+    if mode == 3:
+        return reader.read([img])
     if mode == 1:
         img = ImageOps.autocontrast(img, cutoff=2).filter(ImageFilter.SHARPEN)
-        return reader.read_photo(to_png(img))
-    if mode == 2:
-        return reader.read_photo(to_png(binarize(ImageOps.autocontrast(img, cutoff=2))))
-    return reader.read([img])
+    elif mode == 2:
+        img = binarize(ImageOps.autocontrast(img, cutoff=2))
+    try:
+        lines = [ln for ln in reader.read_photo(to_png(img)) if ln]
+    except Exception:
+        lines = []
+    # 줄을 하나도 못 찾으면 이미지 전체를 한 줄로 읽는다
+    return lines or reader.read([img])
 
 
 def apply_language(lines, lang):
@@ -125,7 +129,7 @@ st.radio("언어", LANGS, index=2, horizontal=True, key="lang", on_change=on_lan
 st.file_uploader("손글씨 사진", type=["png", "jpg", "jpeg", "webp"], key="uploader", on_change=on_upload)
 
 if st.session_state.image_bytes:
-    st.image(st.session_state.image_bytes, use_container_width=True)
+    st.image(st.session_state.image_bytes, width="stretch")
 
     st.subheader("인식 결과")
     st.caption(f"전처리: {PREPROCESS[st.session_state.mode]} · 시도 {st.session_state.attempts}회 · 틀린 글자는 직접 고칠 수 있어요")
@@ -139,8 +143,8 @@ if st.session_state.image_bytes:
         st.info("모든 전처리에서 같은 결과예요. 직접 수정해주세요.")
 
     c1, c2 = st.columns(2)
-    c1.button("🔄 재판독 (전처리 바꿔서)", on_click=on_retry, use_container_width=True)
-    c2.button("💾 저장", on_click=on_save, type="primary", use_container_width=True,
+    c1.button("🔄 재판독 (전처리 바꿔서)", on_click=on_retry, width="stretch")
+    c2.button("💾 저장", on_click=on_save, type="primary", width="stretch",
               disabled=not st.session_state.text.strip())
 
     if st.session_state.saved_path:
