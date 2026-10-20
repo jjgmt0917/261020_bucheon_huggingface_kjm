@@ -1,6 +1,2 @@
-[server]
-# transformers 모듈 감시 중 torchvision 경고가 쏟아지는 것을 막는다
-fileWatcherType = "none"
-
 [browser]
 gatherUsageStats = false
