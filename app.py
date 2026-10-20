@@ -18,7 +18,6 @@ HF_TOKEN = os.getenv("HF_TOKEN")
 SAVE_DIR = BASE_DIR / "saved"
 MAX_SIDE = 1600  # 업로드 이미지는 이 크기로 줄여서 보낸다
 
-LANGS = ["한글", "영어", "한글 + 영어"]
 
 # 재판독할 때마다 다음 모델로 넘어간다 (같은 모델은 같은 사진을 같게 읽는 경우가 많기 때문)
 MODELS = [
@@ -28,12 +27,8 @@ MODELS = [
     ("google/gemma-4-26B-A4B-it", "Gemma 4 26B"),
 ]
 
-PROMPTS = {
-    "한글": "이 이미지의 손글씨 중 한글(숫자 포함)만 옮겨 적어줘. 영어 알파벳으로 쓴 글씨는 모두 건너뛰어.",
-    "영어": "이 이미지의 손글씨 중 영어 알파벳(숫자 포함)만 옮겨 적어줘. 한글로 쓴 글씨는 모두 건너뛰어.",
-    "한글 + 영어": "이 이미지에 손으로 쓴 글씨(한글, 영어)를 쓰인 그대로 옮겨 적어줘.",
-}
-RULES = " 줄바꿈은 원본 그대로 두고, 글씨만 적어. 설명, 따옴표, 번역은 절대 붙이지 마. 글씨가 없으면 빈 칸으로 둬."
+PROMPT = ("이 이미지에 손으로 쓴 글씨(한글, 영어)를 쓰인 그대로 옮겨 적어줘. "
+          "줄바꿈은 원본 그대로 두고, 글씨만 적어. 설명, 따옴표, 번역은 절대 붙이지 마. 글씨가 없으면 빈 칸으로 둬.")
 
 client = InferenceClient(api_key=HF_TOKEN) if HF_TOKEN else None
 
@@ -46,14 +41,14 @@ def to_data_url(data):
     return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
 
 
-def ask(model, data_url, lang):
+def ask(model, data_url):
     res = client.chat.completions.create(
         model=model,
         max_tokens=500,
         temperature=0,
         messages=[{"role": "user", "content": [
             {"type": "image_url", "image_url": {"url": data_url}},
-            {"type": "text", "text": PROMPTS[lang] + RULES},
+            {"type": "text", "text": PROMPT},
         ]}],
     )
     text = (res.choices[0].message.content or "").strip()
@@ -70,7 +65,7 @@ def run_ocr(start):
         idx = (start + step) % len(MODELS)
         model, label = MODELS[idx]
         try:
-            text = ask(model, data_url, s.lang)
+            text = ask(model, data_url)
         except Exception as e:
             failed.append(f"{label}: {str(e).splitlines()[0][:120]}")
             continue
@@ -105,15 +100,6 @@ def on_retry():
         run_ocr((st.session_state.model_idx + 1) % len(MODELS))
 
 
-def on_lang_change():
-    # 언어를 바꾸면 처음 모델부터 다시 읽는다
-    s = st.session_state
-    if s.get("image_bytes"):
-        s.history = []
-        with st.spinner("손글씨 읽는 중..."):
-            run_ocr(0)
-
-
 def on_save():
     SAVE_DIR.mkdir(exist_ok=True)
     path = SAVE_DIR / f"ocr_{datetime.now():%Y%m%d_%H%M%S}.txt"
@@ -133,7 +119,6 @@ if not HF_TOKEN:
     st.error("HF_TOKEN 이 없어요. `.env` 파일에 `HF_TOKEN=...` 을 넣고 다시 실행해주세요. (README 참고)")
     st.stop()
 
-st.radio("언어", LANGS, index=2, horizontal=True, key="lang", on_change=on_lang_change)
 st.file_uploader("손글씨 사진", type=["png", "jpg", "jpeg", "webp"], key="uploader", on_change=on_upload)
 
 if st.session_state.image_bytes:
